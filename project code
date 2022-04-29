@@ -1,0 +1,52 @@
+import cv2
+import numpy as np
+from imutils.object_detection import non_max_suppression
+import imutils
+from playsound import playsound
+
+# Initialize directional gradient histogram descriptors
+hog = cv2.HOGDescriptor()
+#Set up the support vector machine so that it becomes a pre-trained pedestrian detector
+hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+#Read camera video
+cap = cv2.VideoCapture(1)
+while True:
+	# Read video by frame
+   
+    ret, img = cap.read()
+    # Keying out the ROI area of each image frame
+    #img_roi = img1[img_roi_y:(img_roi_y + img_roi_height), img_roi_x:(img_roi_x + img_roi_width)]
+    roi = img[50:450, 350:600]
+    # The detection of pedestrians in the image is performed by calling the hog description sub-method of detectMultiScale.
+    (rects, weights) = hog.detectMultiScale(roi, winStride=(4, 4), padding=(8, 8), scale=1.05)
+    # NMS
+    rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
+    pick = non_max_suppression(rects, probs=None, overlapThresh=0.65)
+   
+    #RED
+    for (x, y, w, h) in pick:
+        cv2.rectangle(roi, (x, y), (x + w, y + h), (0, 0, 255), 2)
+   
+    #cv2.rectangle(img, (50, 50), (600, 450), (0, 255, 0), 2)
+    #BLUE
+    cv2.rectangle(img, (50, 70), (600, 450), (255, 0, 0), 3)
+    #print the number 
+    
+    
+    print("The number of pedestrians detected entering the danger zone is{}".format(len(pick)))
+    # show every frame
+    if len(pick)>1:
+        
+        playsound('C:\\Users\\Dell\\Music\\warnningg.mp3')
+       
+    
+
+    cv2.imshow("Detector", img)
+   
+    # set ESC to quit
+    if cv2.waitKey(1) & 0xff == 27:
+        break
+
+
+cap.release()
+cv2.destroyAllWindows()
